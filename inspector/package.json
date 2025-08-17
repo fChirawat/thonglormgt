@@ -1,0 +1,24 @@
+{
+  "name": "inspector",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base=/assets/thonglormgt/inspector/ && yarn copy-html-entry",
+    "preview": "vite preview",
+    "copy-html-entry": "cp ../thonglormgt/public/inspector/index.html ../thonglormgt/www/inspector.html"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.5.1",
+    "vue": "^3.5.18",
+    "vue-router": "^4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2",
+    "vue-tsc": "^3.0.5"
+  }
+}
