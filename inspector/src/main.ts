@@ -8,6 +8,10 @@ import socket from "../../../doppio/libs/controllers/socket";
 import Auth from "../../../doppio/libs/controllers/auth";
 import "./style.css"
 import PrimeVue from 'primevue/config';
+import { FrappeApp } from 'frappe-js-sdk';
+
+
+const frappeApp = new FrappeApp("/")
 
 
 const app = createApp(App);
@@ -27,6 +31,7 @@ app.use(PrimeVue, {
 app.provide("$auth", auth);
 app.provide("$call", call);
 app.provide("$socket", socket);
+app.provide("$frappeApp", frappeApp);
 
 
 // Configure route gaurds
