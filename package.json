@@ -11,5 +11,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "lucide-vue-next": "^0.540.0",
+    "recharts": "^3.1.2"
+  }
 }

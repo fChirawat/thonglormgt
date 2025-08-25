@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div>]\
 	<h1>Home Page</h1>
 	<!-- Fetch the resource on click -->
 	<button @click="$resources.ping.fetch()">Ping</button>

@@ -34,7 +34,8 @@ app.provide("$socket", socket);
 app.provide("$frappeApp", frappeApp);
 
 
-// Configure route gaurds
+// Configure route gaurds  
+/*
 router.beforeEach(async (to, from, next) => {
 	if (to.matched.some((record) => !record.meta.isLoginPage)) {
 		// this route requires auth, check if logged in
@@ -52,5 +53,5 @@ router.beforeEach(async (to, from, next) => {
 		}
 	}
 });
-
+*/
 app.mount("#app");
