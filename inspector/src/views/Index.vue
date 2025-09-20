@@ -1,138 +1,95 @@
 <template>
-  <div class="container">
-    <header class="header">
-      <h1>ตรวจสอบอุปกรณ์อาคาร</h1>
-    </header>
+  <div class="min-h-screen bg-white flex flex-col items-center p-6">
+    <h1 class="text-lg font-bold mb-4">ตรวจสอบอุปกรณ์อาคาร</h1>
 
-    <main class="main-content">
-      <section class="action-buttons">
-        <button class="action-btn">
-          <span class="icon">➕</span>
-          <span>ตรวจอุปกรณ์</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">🔔</span>
-          <span>แจ้งเตือน</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">📝</span>
-          <span>ตรวจสอบย้อนหลัง</span>
-        </button>
-      </section>
-    </main>
+    <div class="w-full max-w-md mb-6">
+      <h2 class="text-sm font-medium mb-2">แนวโน้ม</h2>
+      <div class="bg-gray-100 rounded-lg p-4">
+      
+        <svg viewBox="0 0 300 100" class="w-full h-32">
+          
+          <rect v-for="(value, index) in data" 
+                :key="index"
+                :x="index * 40 + 10"
+                :y="100 - value"
+                width="20"
+                :height="value"
+                fill="#4b7350"
+                rx="3"
+          />
+        </svg>
+   
+        <div class="flex justify-between text-xs text-gray-500 mt-2">
+          <span v-for="(label, index) in labels" :key="index">{{ label }}</span>
+        </div>
+      </div>
+    </div>
 
-    <footer class="footer-nav">
-      <nav class="nav-bar">
-        <a href="#" class="nav-item active">
-          <span class="icon">🏠</span>
-          <span>หน้าหลัก</span>
-        </a>
-        <a href="#" class="nav-item">
-          <span class="icon">⚙️</span>
-          <span>ตั้งค่า</span>
-        </a>
-      </nav>
-    </footer>
+
+    <div class="w-full max-w-md mt-2 space-y-3">
+
+      <div class="bg-gray-100 rounded-lg shadow">
+        <button
+          @click="toggleAccordion"
+          class="w-full flex justify-between items-center px-4 py-3"
+        >
+          <span class="flex items-center space-x-2">
+            <span class="text-xl">➕</span>
+            <span>ตรวจอุปกรณ์</span>
+          </span>
+          <span class="text-gray-500">{{ isOpen ? "⌄" : ">" }}</span>
+        </button>
+
+        <div v-if="isOpen" class="px-8 py-2 space-y-2">
+          <button class="w-full text-left flex items-center space-x-2">
+            <span class="text-sm">➕</span>
+            <span>ตรวจอุปกรณ์รายวัน</span>
+          </button>
+          <button class="w-full text-left flex items-center space-x-2">
+            <span class="text-sm">➕</span>
+            <span>ตรวจอุปกรณ์รายเดือน</span>
+          </button>
+        </div>
+      </div>
+
+      <button
+        class="w-full flex items-center space-x-2 bg-white px-4 py-3 rounded-lg border shadow"
+      >
+        <span class="text-xl">🔔</span>
+        <span>แจ้งเตือน</span>
+      </button>
+
+      <button
+        class="w-full flex items-center space-x-2 bg-white px-4 py-3 rounded-lg border shadow"
+      >
+        <span class="text-xl">📋</span>
+        <span>ตรวจสอบย้อนหลัง</span>
+      </button>
+    </div>
+
+    <div
+      class="fixed bottom-0 w-full max-w-md flex justify-around bg-white border-t py-2"
+    >
+      <button class="flex flex-col items-center text-gray-800">
+        <span class="text-2xl">🏠</span>
+        <span class="text-xs">หน้าหลัก</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-500">
+        <span class="text-2xl">⚙️</span>
+        <span class="text-xs">ตั้งค่า</span>
+      </button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "BuildingInspectionPage",
+<script setup>
+import { ref } from "vue";
+
+const isOpen = ref(false);
+const toggleAccordion = () => {
+  isOpen.value = !isOpen.value;
 };
+
+const data = [40, 60, 30, 80, 50, 70, 60];
+const labels = ["month 1", "month 2", "month 3", "month 4", "month 5", "month 6", "month 7"];
 </script>
-
-<style scoped>
-.container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  width: 100%;             
-  max-width: 1024px;      
-  margin: auto;
-  padding: 2rem;
-  background-color: #f0f2f5;
-  color: #333;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.header h1 {
-  font-size: 2rem;  
-  font-weight: bold;
-}
-
-.main-content {
-  flex-grow: 1;
-}
-
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.action-btn {
-  background-color: #fff;
-  border: none;
-  border-radius: 15px;
-  padding: 1.5rem 2rem;   
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-size: 1.25rem;    
-  color: #333;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-}
-
-.action-btn .icon {
-  font-size: 2rem;          
-}
-
-.footer-nav {
-  margin-top: auto;
-  background-color: #fff;
-  padding: 1rem 0;
-  border-top: 1px solid #e0e0e0;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-.nav-bar {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: #888;
-  font-size: 1rem;
-  padding: 0.75rem;
-}
-
-.nav-item.active {
-  color: #007bff;
-}
-
-.nav-item .icon {
-  font-size: 2rem;
-  margin-bottom: 0.2rem;
-}
-</style>
