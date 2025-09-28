@@ -11,12 +11,6 @@
         class="input-field"
       />
 
-    
-      <select v-model="userType" class="input-field">
-        <option value="" disabled>ประเภทผู้ใช้งาน</option>
-        <option value="inspector">เจ้าหน้าที่ตรวจสอบ</option>
-        <option value="admin">แอดมิน</option>
-      </select>
 
      
       <input
