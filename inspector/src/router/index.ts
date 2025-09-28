@@ -3,6 +3,7 @@ import About from "../views/About.vue";
 import authRoutes from './auth';
 import Layout from "../views/Layout.vue";
 import Index from "../views/Index.vue";
+
 33
 const routes: RouteRecordRaw[] = [
   ...authRoutes,
