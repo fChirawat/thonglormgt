@@ -2,33 +2,26 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "autoincrement",
- "creation": "2025-08-16 14:31:37.633495",
+ "creation": "2025-09-28 19:32:58.247235",
+ "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "username",
-  "password"
+  "full_name"
  ],
  "fields": [
   {
-   "fieldname": "username",
+   "fieldname": "full_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "username"
-  },
-  {
-   "fieldname": "password",
-   "fieldtype": "Password",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "password"
+   "label": "full name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-17 12:19:46.245963",
+ "modified": "2025-09-28 19:45:49.392512",
  "modified_by": "Administrator",
  "module": "Thonglormgt",
  "name": "username",
@@ -49,9 +42,7 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "title_field": "username"
+ "states": []
 }

@@ -7,13 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "category",
-  "sub_category",
   "equipment",
-  "equipment_location",
   "inspection",
-  "standard_value",
-  "check",
-  "inspection_fee",
+  "inspection_value",
+  "number_value",
   "details",
   "datetime",
   "username"
@@ -25,17 +22,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Category",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "inspection.sub_category",
-   "fieldname": "sub_category",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Sub Category",
-   "read_only": 1
+   "label": "Category"
   },
   {
    "fetch_from": "inspection.equipment",
@@ -43,51 +30,14 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Equipment",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "inspection.equipment_location",
-   "fieldname": "equipment_location",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Equipment Location",
-   "read_only": 1
+   "label": "Equipment"
   },
   {
    "fieldname": "inspection",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Inspection",
-   "options": "Inspectionnn"
-  },
-  {
-   "fetch_from": "inspection.standard_value",
-   "fieldname": "standard_value",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Standard Value",
-   "read_only": 1
-  },
-  {
-   "description": "N (\u0e1c\u0e48\u0e32\u0e19)\nAB (\u0e44\u0e21\u0e48\u0e1c\u0e48\u0e32\u0e19) ",
-   "fieldname": "check",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "checked",
-   "options": "N\nAB"
-  },
-  {
-   "description": "\u0e04\u0e48\u0e32\u0e17\u0e35\u0e48\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e44\u0e14\u0e49",
-   "fieldname": "inspection_fee",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Inspection Fee"
+   "label": "Inspection"
   },
   {
    "description": "\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e44\u0e21\u0e48\u0e1c\u0e48\u0e32\u0e19\u0e43\u0e2a\u0e48\u0e23\u0e32\u0e22\u0e25\u0e30\u0e40\u0e2d\u0e35\u0e22\u0e14",
@@ -98,6 +48,7 @@
    "label": "Details"
   },
   {
+   "description": "\u0e40\u0e27\u0e25\u0e32\u0e17\u0e35\u0e49\u0e48\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
    "fieldname": "datetime",
    "fieldtype": "Datetime",
    "in_list_view": 1,
@@ -106,17 +57,29 @@
   },
   {
    "fieldname": "username",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Username",
-   "options": "username"
+   "label": "Username"
+  },
+  {
+   "description": "\u0e04\u0e48\u0e32\u0e17\u0e35\u0e48\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e44\u0e14\u0e49",
+   "fieldname": "inspection_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Inspection Value"
+  },
+  {
+   "fieldname": "number_value",
+   "fieldtype": "Float",
+   "label": "number value"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-17 12:21:04.410525",
+ "modified": "2025-09-28 20:32:52.028904",
  "modified_by": "Administrator",
  "module": "Thonglormgt",
  "name": "Formmm",
