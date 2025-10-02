@@ -37,18 +37,14 @@ const router = useRouter();
 
 // รายการเมนู
 const menuItems = ref([
-  { label: "รายวัน", checked: false },
-  { label: "รายเดือน", checked: false },
-  { label: "รายปี", checked: false },
-  { label: "ไตรมาส", checked: false },
+  { label: "แบบฟอร์ม", checked: false },
+  { label: "ปฏิทินย้อนหลัง", checked: false },
 ]);
 
 // Mapping ป้ายชื่อไปยัง route
 const routeMap = {
-  "รายวัน": "/InspectionDay",
-  "รายเดือน": "/InspectionMonth",
-  "รายปี": "/year",
-  "ไตรมาส": "/quarter",
+  "แบบฟอร์ม": "/InspectionDay",
+  "ปฏิทินย้อนหลัง": "/history",
 };
 
 // ฟังก์ชันไปยังหน้าเฉพาะ

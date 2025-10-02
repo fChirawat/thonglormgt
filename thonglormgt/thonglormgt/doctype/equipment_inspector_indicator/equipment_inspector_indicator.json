@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-09-29 13:33:31.258467",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "equipment_indicator",
+  "title",
+  "description",
+  "type",
+  "option",
+  "value",
+  "standard_grading",
+  "standard_value_start",
+  "standard_value_end"
+ ],
+ "fields": [
+  {
+   "fetch_from": "equipment_indicator.title",
+   "fetch_if_empty": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Title"
+  },
+  {
+   "fetch_from": "equipment_indicator.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description"
+  },
+  {
+   "fetch_from": "equipment_indicator.type",
+   "fetch_if_empty": 1,
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "int\nfloat\ndata\nselect"
+  },
+  {
+   "fetch_from": "equipment_indicator.option",
+   "fetch_if_empty": 1,
+   "fieldname": "option",
+   "fieldtype": "Long Text",
+   "label": "Option"
+  },
+  {
+   "fieldname": "equipment_indicator",
+   "fieldtype": "Link",
+   "label": "Equipment Indicator",
+   "options": "Equipment Indicator"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Value"
+  },
+  {
+   "fetch_from": "equipment_indicator.standard_grading",
+   "fetch_if_empty": 1,
+   "fieldname": "standard_grading",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard Grading"
+  },
+  {
+   "fetch_from": "equipment_indicator.standard_value_start",
+   "fetch_if_empty": 1,
+   "fieldname": "standard_value_start",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard Value Start",
+   "options": "int\nfloat\ndata\nselect"
+  },
+  {
+   "fetch_from": "equipment_indicator.standard_value_end",
+   "fetch_if_empty": 1,
+   "fieldname": "standard_value_end",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard Value End",
+   "options": "int\nfloat\ndata\nselect"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-01 00:21:51.618200",
+ "modified_by": "Administrator",
+ "module": "Thonglormgt",
+ "name": "Equipment Inspector Indicator",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

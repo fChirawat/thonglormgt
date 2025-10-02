@@ -1,42 +1,41 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "autoincrement",
- "creation": "2025-08-25 14:30:56.227492",
- "default_view": "List",
+ "autoname": "field:code",
+ "creation": "2025-09-29 13:17:48.050843",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "category",
-  "equipment_name"
+  "code",
+  "title",
+  "description"
  ],
  "fields": [
   {
-   "description": "\u0e0a\u0e37\u0e48\u0e2d\u0e02\u0e2d\u0e07\u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17\u0e41\u0e1a\u0e1a\u0e1f\u0e23\u0e2d\u0e21",
-   "fieldname": "category",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Category",
-   "options": "\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23 (day)\n\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23 (month)"
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "unique": 1
   },
   {
-   "description": "\u0e2d\u0e38\u0e1b\u0e01\u0e23\u0e13\u0e4c\u0e2b\u0e25\u0e31\u0e01",
-   "fieldname": "equipment_name",
+   "fieldname": "title",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Equipment"
+   "label": "Title"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 14:30:56.227492",
+ "modified": "2025-09-29 13:18:15.705914",
  "modified_by": "Administrator",
  "module": "Thonglormgt",
  "name": "Equipment",
- "naming_rule": "Autoincrement",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -53,9 +52,8 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "equipment_name"
+ "title_field": "title"
 }

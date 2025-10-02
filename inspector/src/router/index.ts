@@ -3,10 +3,9 @@ import About from "../views/About.vue";
 import authRoutes from './auth';
 import Layout from "../views/Layout.vue";
 import Index from "../views/Index.vue";
-import InspectionMonth from "../views/InspectionMonth.vue";
 import InspectionDay from "../views/InspectionDay.vue";
 import history from "../views/history.vue";
-import dataHistory from "../views/dataHistory.vue";
+import EquipmentInspectorList from "../views/EquipmentInspectorList.vue";
 
 
 const routes: RouteRecordRaw[] = [
@@ -26,11 +25,7 @@ const routes: RouteRecordRaw[] = [
         name: "About",
         component: About,
       },
-      {
-        path: "InspectionMonth",
-        name: "InspectionMonth",
-        component: InspectionMonth,
-      },
+
       {
         path: "InspectionDay",
         name: "InspectionDay",
@@ -42,10 +37,11 @@ const routes: RouteRecordRaw[] = [
         component: history,
       },
       {
-        path: "dataHistory.",
-        name: "dataHistory",
-        component: dataHistory,
+        path: "EquipmentInspectorList",
+        name: "EquipmentInspectorList",
+        component: EquipmentInspectorList,
       },
+
     ]
   },
 

@@ -1,7 +1,7 @@
 <template>
     <div>
-        Current User: {{ username }}
-        <Button v-if="$auth.isLoggedIn" @click="$auth.logout()">Logout </Button>
+         User: {{ username }}
+        <!-- <Button v-if="$auth.isLoggedIn" @click="$auth.logout()">Logout </Button> -->
     </div>
 </template>
 
@@ -25,5 +25,6 @@ onMounted(async () => {
   console.log('x', x);
   username.value = x;
 })
+
 
 </script>
