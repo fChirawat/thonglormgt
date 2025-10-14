@@ -6,6 +6,7 @@ import Index from "../views/Index.vue";
 import InspectionDay from "../views/InspectionDay.vue";
 import history from "../views/history.vue";
 import EquipmentInspectorList from "../views/EquipmentInspectorList.vue";
+import editinspection from "../views/editinspection.vue";
 
 
 const routes: RouteRecordRaw[] = [
@@ -40,6 +41,11 @@ const routes: RouteRecordRaw[] = [
         path: "EquipmentInspectorList",
         name: "EquipmentInspectorList",
         component: EquipmentInspectorList,
+      },
+            {
+        path: "editinspection",
+        name: "editinspection",
+        component: editinspection,
       },
 
     ]

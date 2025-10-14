@@ -99,6 +99,30 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Popup Modal ตาราง (แสดงทั้งตรวจแล้วและยังไม่ได้กรอก) -->
+    <div v-if="showPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded shadow-lg max-w-lg w-full max-h-[80vh] overflow-auto">
+        <h3 class="text-lg font-bold mb-4">สถานะอุปกรณ์</h3>
+        <table class="table-auto border-collapse border w-full text-left mb-4">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border px-2 py-1">ลำดับ</th>
+              <th class="border px-2 py-1">ชื่ออุปกรณ์</th>
+              <th class="border px-2 py-1">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in popupItems" :key="index" :class="item.status === '❌' ? 'bg-red-100' : 'bg-green-100'">
+              <td class="border px-2 py-1">{{ index + 1 }}</td>
+              <td class="border px-2 py-1">{{ item.title }}</td>
+              <td class="border px-2 py-1 font-semibold" :class="item.status === '❌' ? 'text-red-600' : 'text-green-600'">{{ item.status }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <button @click="showPopup = false" class="bg-blue-500 text-white px-4 py-2 rounded">ปิด</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -118,6 +142,10 @@ const weekDays = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.']
 const quarterMonths = ['ม.ค.-มี.ค.', 'เม.ย.-มิ.ย.', 'ก.ค.-ก.ย.', 'ต.ค.-ธ.ค.']
 const calendarData = ref({})
 const yearStart = ref(currentDate.getFullYear())
+
+// Popup
+const showPopup = ref(false)
+const popupItems = ref([])
 
 function formatDate(year, month, day) { return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}` }
 function formatMonth(year, monthIndex) { return `${year}-${monthIndex+1}` }
@@ -147,7 +175,6 @@ function prevYear() { currentYear.value-- }
 function nextDecade() { yearStart.value += 10 }
 function prevDecade() { yearStart.value -= 10 }
 
-// --- fetch calendar from backend ---
 async function fetchCalendar() {
   try {
     let params = { period: '', year: currentYear.value }
@@ -164,7 +191,7 @@ async function fetchCalendar() {
   }
 }
 
-// --- คืนสีช่อง ---
+// สีช่อง
 function getCellColor(key, type = 'day') {
   if (!key) return ''
   let matchedKey
@@ -178,7 +205,7 @@ function getCellColor(key, type = 'day') {
   return anyCheck ? 'bg-orange-200' : ''
 }
 
-// --- tooltip ---
+// tooltip
 function getCellTooltip(key, type = 'day') {
   if (!key) return ''
   let matchedKey
@@ -192,52 +219,46 @@ function getCellTooltip(key, type = 'day') {
   return ''
 }
 
-// --- คลิกช่อง ---
+// คลิกช่อง
 function handleCellClick(key, type = 'day') {
   if (!key) return
+
+  // หา key ที่ตรงกับ calendarData
   let matchedKey
   if (type === 'day') matchedKey = Object.keys(calendarData.value).find(k => k.startsWith(key))
   else matchedKey = Object.keys(calendarData.value).find(k => k === key || k === key + '✅')
   if (!matchedKey) return
+
   const data = calendarData.value[matchedKey]
-  if (!data) return
+  if (!data || !data.length) return
 
-  const isGreen = matchedKey.endsWith('✅') || data.every(item => item.status === '✅')
-  const isOrange = data.some(item => item.status === '❌') && !data.every(item => item.status === '✅')
+  // ตรวจสอบ ✅ ทั้งหมด
+  const isAllGreen = data.every(item => item.status === '✅') || matchedKey.endsWith('✅')
 
-  if (isOrange) {
-    const missing = data.filter(item => item.status === '❌').map(item => item.title)
-    alert('Equipment ยังไม่ได้กรอก: ' + missing.join(', '))
-    return
-  }
-
-  if (isGreen) {
+  if (isAllGreen) {
+    // ส่งไปหน้า EquipmentInspectorList
     let query = { period: '', year: currentYear.value }
     if (type === 'day') {
       const [y, m, d] = key.split('-')
-      query.period = 'วัน'
-      query.day = d
-      query.month = m
-      query.year = y
+      query.period = 'วัน'; query.day = d; query.month = m; query.year = y
     } else if (type === 'month') {
       const [y, m] = key.split('-')
-      query.period = 'เดือน'
-      query.month = m
-      query.year = y
+      query.period = 'เดือน'; query.month = m; query.year = y
     } else if (type === 'quarter') {
       const [y, q] = key.split('-')
-      query.period = 'ไตรมาส'
-      query.quarter = q
-      query.year = y
+      query.period = 'ไตรมาส'; query.quarter = q; query.year = y
     } else if (type === 'year') {
-      query.period = 'ปี'
-      query.year = key
+      query.period = 'ปี'; query.year = key
     }
     router.push({ name: 'EquipmentInspectorList', query })
+  } else {
+    // ถ้ายังมี ❌ → แสดง popup
+    popupItems.value = data
+    showPopup.value = true
   }
 }
 
-// --- watch ---
+
 watch([selectedPeriod, currentMonth, currentYear], fetchCalendar, { immediate: true })
 </script>
 

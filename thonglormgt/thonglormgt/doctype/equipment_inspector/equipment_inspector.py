@@ -42,6 +42,14 @@ class EquipmentInspector(Document):
 # ดึง Equipment Indicator ตรงกรอกแบบฟรอม
 @frappe.whitelist(allow_guest=True)
 def get_equipment_indicators(equipment=None, period=None):
+    """
+    ดึงรายการ Equipment Indicator สำหรับอุปกรณ์และช่วงเวลาที่เลือก
+    คืนค่า list ของ indicators พร้อมรายละเอียดเช่น:
+      - title: ชื่อ indicator
+      - equipment: ชื่ออุปกรณ์ (title)
+      - equipment_description: คำอธิบายของอุปกรณ์
+      - type, option, standard_value_start, standard_value_end, standard_grading
+    """
     period_dict = {
         'วัน': 'period_day',
         'เดือน': 'period_month',
@@ -60,14 +68,19 @@ def get_equipment_indicators(equipment=None, period=None):
         order_by="idx asc"
     )
 
-    # แปลง equipment code → title
+    # แปลง equipment code → title และเพิ่ม description
     for d in indicators:
         if d.get("equipment"):
             title = frappe.get_value("Equipment", d["equipment"], "title")
+            description = frappe.get_value("Equipment", d["equipment"], "description") or ""
             if title:
                 d["equipment"] = title
+                d["equipment_description"] = description  # เพิ่ม description
+            else:
+                d["equipment_description"] = ""
 
     return {"message": indicators}
+
 
 # ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -296,16 +309,11 @@ def get_equipment_by_period(period=None):
 
 # ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-# เช็ต period ที่กรอกได้
 @frappe.whitelist(allow_guest=True)
 def check_period(period=None, year=None, month=None):
     """
     คืนค่า calendar_data = {date_or_month: [{"title": "...", "status": "✅/❌"}]}
-    ต่อท้าย key ตามกฎ:
-        - ✅ ทั้งหมด → ต่อท้าย ✅
-        - ❌ ปน → ไม่ต่อท้าย
-        - ❌ ทั้งหมด → ไม่ต่อท้าย
+    แปลงรหัส A001 -> ชื่ออุปกรณ์จริง
     """
     from calendar import monthrange
     from datetime import date as dt_date
@@ -318,13 +326,19 @@ def check_period(period=None, year=None, month=None):
 
         calendar_data = {}
 
-        # ดึง Equipment Indicator ทั้งหมด
+        # --- ดึง Equipment Indicator ทั้งหมด ---
         indicators = frappe.get_all(
             "Equipment Indicator",
             fields=["equipment", "title", "period_day", "period_month", "period_quarter", "period_year"]
         )
 
-        # Mapping period field
+        # --- สร้าง mapping รหัส -> ชื่ออุปกรณ์ ---
+        equipment_map = {}
+        equipment_list = frappe.get_all("Equipment", fields=["name", "title"])
+        for eq in equipment_list:
+            equipment_map[eq.name] = eq.title
+
+        # --- Mapping period field ---
         period_field_map = {
             "วัน": "period_day",
             "เดือน": "period_month",
@@ -335,14 +349,12 @@ def check_period(period=None, year=None, month=None):
         if not period_field:
             return {"status": False, "message": f"period {period} ไม่ถูกต้อง", "data": {}}
 
-        # กรอง indicators ตาม period
+        # --- กรอง indicators ตาม period ---
         indicators = [ind for ind in indicators if ind.get(period_field)]
 
-        # ดึง Equipment Inspector
+        # --- ดึง Equipment Inspector ---
         filters = {"period": period}
-        if period in ["วัน", "เดือน", "ไตรมาส"]:
-            filters["date"] = ["between", [dt_date(year, 1, 1), dt_date(year, 12, 31)]]
-        elif period == "ปี":
+        if period in ["วัน", "เดือน", "ไตรมาส", "ปี"]:
             filters["date"] = ["between", [dt_date(year, 1, 1), dt_date(year, 12, 31)]]
 
         inspector_records = frappe.get_all(
@@ -370,13 +382,14 @@ def check_period(period=None, year=None, month=None):
             existing_map[key].setdefault(rec.equipment, [])
             existing_map[key][rec.equipment] = [ind.title for ind in getattr(doc, "equipment_inspector_indicator", [])]
 
-        # ฟังก์ชันสร้าง status และ key suffix
+        # --- ฟังก์ชันสร้าง status และ key suffix ---
         def generate_data(key_base):
             data = []
             all_check = True
             any_check = False
             for ind in indicators:
                 eq = ind.equipment
+                eq_name = equipment_map.get(eq, eq)  # แปลงรหัสเป็นชื่ออุปกรณ์
                 title = ind.title
                 existing_titles = existing_map.get(key_base, {}).get(eq, [])
                 status = "✅" if title in existing_titles else "❌"
@@ -384,13 +397,13 @@ def check_period(period=None, year=None, month=None):
                     all_check = False
                 if status == "✅":
                     any_check = True
-                data.append({"title": f"{eq} - {title}", "status": status})
+                data.append({"title": f"{eq_name} - {title}", "status": status})
 
             # กำหนด suffix: ถ้า ✅ ทั้งหมด → ต่อท้าย ✅
             suffix = "✅" if all_check and any_check else ""
             return key_base + suffix, data
 
-        # สร้าง calendar_data ตาม period
+        # --- สร้าง calendar_data ตาม period ---
         if period == "วัน":
             num_days = monthrange(year, month)[1]
             for day in range(1, num_days + 1):
@@ -430,6 +443,7 @@ def check_period(period=None, year=None, month=None):
             "message": str(e),
             "data": {}
         }
+
 
         
         
