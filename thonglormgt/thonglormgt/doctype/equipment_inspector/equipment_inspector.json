@@ -22,6 +22,8 @@
   {
    "fieldname": "date",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date"
   },
   {
@@ -50,7 +52,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 14:08:35.810322",
+ "modified": "2025-10-16 20:53:20.141535",
  "modified_by": "Administrator",
  "module": "Thonglormgt",
  "name": "Equipment Inspector",

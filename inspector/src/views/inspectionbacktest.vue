@@ -2,18 +2,8 @@
   <div class="p-6 max-w-4xl mx-auto">
     <h2 class="text-xl font-bold mb-4">Equipment Inspector</h2>
 
-    <!-- Filters -->
+    <!-- เลือกประเภทอุปกรณ์ -->
     <div class="flex gap-4 mb-4">
-      <!-- เลือกช่วงเวลา -->
-      <select v-model="selectedPeriod" @change="loadEquipmentByPeriod" class="border p-2 rounded">
-        <option value="">-- เลือกช่วงเวลา --</option>
-        <option value="วัน">วัน</option>
-        <option value="เดือน">เดือน</option>
-        <option value="ไตรมาส">ไตรมาส</option>
-        <option value="ปี">ปี</option>
-      </select>
-
-      <!-- เลือกประเภทอุปกรณ์ -->
       <select v-model="selectedEquipmentType" class="border p-2 rounded">
         <option value="">-- เลือกอุปกรณ์ --</option>
         <option v-for="type in uniqueEquipmentTypes" :key="type" :value="type">{{ type }}</option>
@@ -27,9 +17,6 @@
 
       <button @click="loadIndicators" class="bg-blue-500 text-white px-4 py-2 rounded">Load</button>
     </div>
-
-    <!-- เลือกวันที่ -->
-    <input type="datetime-local" v-model="selectedDate" class="border p-2 rounded mb-4" />
 
     <!-- ตาราง indicators -->
     <div v-if="Object.keys(groupedIndicators).length">
@@ -69,35 +56,31 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import axios from "axios";
+import { useRoute } from "vue-router";
 
 // ------------------ State ------------------
-const selectedPeriod = ref("");
+const route = useRoute();
+
+const selectedPeriod = ref("วัน");   
+const selectedDate = ref(""); 
 const selectedEquipmentType = ref("");
 const selectedEquipmentOption = ref("all");
-const selectedDate = ref(new Date().toISOString().slice(0,16));
 
 const equipmentList = ref([]);
 const matchedEquipments = ref([]);
 const indicators = ref([]);
-const equipmentDescription = ref({}); // เก็บ description ของแต่ละอุปกรณ์
-
-// เวลาไทย +7
-const tzOffset = 7*60;
-selectedDate.value = new Date(new Date().getTime()+tzOffset*60*1000).toISOString().slice(0,16);
+const equipmentDescription = ref({});
 
 // ------------------ Computed ------------------
-// ประเภทอุปกรณ์ไม่ซ้ำ
 const uniqueEquipmentTypes = computed(() => {
   const types = equipmentList.value.map(eq => eq.title.replace(/\s*\d+$/, "").trim());
   return [...new Set(types)];
 });
 
-// แสดง select เลือกตัวหรือทั้งหมด ก็ต่อเมื่อมีหลายตัว
 const showEquipmentSelect = computed(() => matchedEquipments.value.length > 1);
 
-// แยก indicators ตามชื่ออุปกรณ์
 const groupedIndicators = computed(() => {
   const groups = {};
   indicators.value.forEach(ind => {
@@ -121,22 +104,28 @@ watch(selectedEquipmentType, () => {
 });
 
 // ------------------ Functions ------------------
-
-// โหลดรายการอุปกรณ์ตามช่วงเวลา
 const loadEquipmentByPeriod = async () => {
   if (!selectedPeriod.value) { equipmentList.value=[]; return; }
+
+  const params = { period: selectedPeriod.value };
+  if (selectedPeriod.value === "วัน" || selectedPeriod.value === "เดือน") params.date = selectedDate.value;
+  if (selectedPeriod.value === "ไตรมาส") {
+    params.year = route.query.year;
+    params.quarter = route.query.quarter;
+  }
+  if (selectedPeriod.value === "ปี") params.year = route.query.year;
+
   try {
     const res = await axios.get(
-      "http://localhost:8001/api/method/thonglormgt.thonglormgt.doctype.equipment_inspector.equipment_inspector.get_equipment_by_period",
-      { params: { period: selectedPeriod.value } }
+      "http://localhost:8001/api/method/thonglormgt.thonglormgt.doctype.equipment_inspector.equipment_inspector.get_equipment_by_period_2",
+      { params }
     );
-    equipmentList.value = res.data.message || [];
+    equipmentList.value = res.data.message?.message || [];
   } catch(err) {
     console.error(err); alert("โหลดอุปกรณ์ไม่สำเร็จ");
   }
 };
 
-// โหลด indicators
 const loadIndicators = async () => {
   if (!selectedEquipmentType.value) { alert("กรุณาเลือกอุปกรณ์"); return; }
   let equipmentsToLoad = [];
@@ -166,7 +155,6 @@ const loadIndicators = async () => {
   equipmentDescription.value = descriptions;
 };
 
-// ดึง options สำหรับ select
 const getOptions = (indicator) => {
   if (!indicator.option) return [];
   if (indicator.option.includes("\n")) return indicator.option.split("\n").map(o=>o.trim());
@@ -174,10 +162,9 @@ const getOptions = (indicator) => {
   return [indicator.option];
 };
 
-// บันทึก indicators เฉพาะที่กรอกค่า
 const saveIndicators = async () => {
   if (!selectedDate.value || indicators.value.length === 0) {
-    alert("กรุณาเลือกวันที่และโหลดอุปกรณ์");
+    alert("กรุณาโหลดอุปกรณ์");
     return;
   }
 
@@ -190,7 +177,6 @@ const saveIndicators = async () => {
     });
 
     for (const eq of Object.keys(groupedByEquipment)) {
-      // เฉพาะ indicator ที่กรอกค่า
       const indicatorsToSend = groupedByEquipment[eq].filter(ind => ind.value !== "" && ind.value != null).map(ind => {
         let value = ind.value;
         if (ind.type === "float" || ind.type === "int") value = parseFloat(value);
@@ -216,7 +202,6 @@ const saveIndicators = async () => {
     indicators.value = [];
     selectedEquipmentType.value = "";
     selectedEquipmentOption.value = "all";
-    selectedPeriod.value = "";
     await loadEquipmentByPeriod();
 
   } catch(err) {
@@ -224,6 +209,32 @@ const saveIndicators = async () => {
     alert("บันทึกไม่สำเร็จ");
   }
 };
+
+// ------------------ Mounted ------------------
+onMounted(() => {
+  selectedPeriod.value = route.query.period || "วัน";
+
+  if (selectedPeriod.value === "วัน" || selectedPeriod.value === "เดือน") {
+    if (route.query.displayPeriod) {
+      const [d,m,y] = route.query.displayPeriod.split("/");
+      selectedDate.value = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    } else {
+      selectedDate.value = new Date().toISOString().slice(0,10);
+    }
+  } else if (selectedPeriod.value === "ไตรมาส") {
+    const year = route.query.year;
+    const quarter = route.query.quarter;
+    if (year && quarter) {
+      const month = (parseInt(quarter)-1)*3 + 1;
+      selectedDate.value = `${year}-${month.toString().padStart(2,'0')}-01`;
+    }
+  } else if (selectedPeriod.value === "ปี") {
+    const year = route.query.year;
+    if (year) selectedDate.value = `${year}-01-01`;
+  }
+
+  loadEquipmentByPeriod();
+});
 </script>
 
 <style scoped>

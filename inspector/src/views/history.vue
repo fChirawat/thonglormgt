@@ -28,7 +28,6 @@
           <tr v-for="(week, idx) in dayCalendar" :key="idx">
             <td v-for="d in week" :key="d" 
                 :class="getCellColor(formatDate(currentYear, currentMonth, d), 'day')"
-                :title="getCellTooltip(formatDate(currentYear, currentMonth, d), 'day')"
                 @click="handleCellClick(formatDate(currentYear, currentMonth, d), 'day')">
               {{ d || '' }}
             </td>
@@ -49,7 +48,6 @@
           <tr>
             <td v-for="(month, idx) in monthNames" :key="idx" 
                 :class="getCellColor(formatMonth(currentYear, idx), 'month')"
-                :title="getCellTooltip(formatMonth(currentYear, idx), 'month')"
                 @click="handleCellClick(formatMonth(currentYear, idx), 'month')">
               {{ idx + 1 }}/{{ currentYear }}
             </td>
@@ -70,7 +68,6 @@
           <tr>
             <td v-for="q in 4" :key="q" 
                 :class="getCellColor(formatQuarter(currentYear, q), 'quarter')"
-                :title="getCellTooltip(formatQuarter(currentYear, q), 'quarter')"
                 @click="handleCellClick(formatQuarter(currentYear, q), 'quarter')">
               {{ quarterMonths[q - 1] }}
             </td>
@@ -91,37 +88,12 @@
           <tr>
             <td v-for="y in 10" :key="y" 
                 :class="getCellColor(String(yearStart + (y-1)), 'year')"
-                :title="getCellTooltip(String(yearStart + (y-1)), 'year')"
                 @click="handleCellClick(String(yearStart + (y-1)), 'year')">
               {{ yearStart + (y-1) + 543 }}
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Popup Modal ตาราง (แสดงทั้งตรวจแล้วและยังไม่ได้กรอก) -->
-    <div v-if="showPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded shadow-lg max-w-lg w-full max-h-[80vh] overflow-auto">
-        <h3 class="text-lg font-bold mb-4">สถานะอุปกรณ์</h3>
-        <table class="table-auto border-collapse border w-full text-left mb-4">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="border px-2 py-1">ลำดับ</th>
-              <th class="border px-2 py-1">ชื่ออุปกรณ์</th>
-              <th class="border px-2 py-1">สถานะ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in popupItems" :key="index" :class="item.status === '❌' ? 'bg-red-100' : 'bg-green-100'">
-              <td class="border px-2 py-1">{{ index + 1 }}</td>
-              <td class="border px-2 py-1">{{ item.title }}</td>
-              <td class="border px-2 py-1 font-semibold" :class="item.status === '❌' ? 'text-red-600' : 'text-green-600'">{{ item.status }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button @click="showPopup = false" class="bg-blue-500 text-white px-4 py-2 rounded">ปิด</button>
-      </div>
     </div>
   </div>
 </template>
@@ -132,7 +104,6 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-
 const selectedPeriod = ref('day')
 const currentDate = new Date()
 const currentMonth = ref(currentDate.getMonth())
@@ -142,10 +113,6 @@ const weekDays = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.']
 const quarterMonths = ['ม.ค.-มี.ค.', 'เม.ย.-มิ.ย.', 'ก.ค.-ก.ย.', 'ต.ค.-ธ.ค.']
 const calendarData = ref({})
 const yearStart = ref(currentDate.getFullYear())
-
-// Popup
-const showPopup = ref(false)
-const popupItems = ref([])
 
 function formatDate(year, month, day) { return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}` }
 function formatMonth(year, monthIndex) { return `${year}-${monthIndex+1}` }
@@ -194,9 +161,7 @@ async function fetchCalendar() {
 // สีช่อง
 function getCellColor(key, type = 'day') {
   if (!key) return ''
-  let matchedKey
-  if (type === 'day') matchedKey = Object.keys(calendarData.value).find(k => k.startsWith(key))
-  else matchedKey = Object.keys(calendarData.value).find(k => k === key || k === key + '✅')
+  const matchedKey = Object.keys(calendarData.value).find(k => k.startsWith(key))
   if (!matchedKey) return ''
   const data = calendarData.value[matchedKey]
   if (!data) return ''
@@ -205,59 +170,26 @@ function getCellColor(key, type = 'day') {
   return anyCheck ? 'bg-orange-200' : ''
 }
 
-// tooltip
-function getCellTooltip(key, type = 'day') {
-  if (!key) return ''
-  let matchedKey
-  if (type === 'day') matchedKey = Object.keys(calendarData.value).find(k => k.startsWith(key))
-  else matchedKey = Object.keys(calendarData.value).find(k => k === key || k === key + '✅')
-  if (!matchedKey) return ''
-  const data = calendarData.value[matchedKey]
-  if (!data) return ''
-  const missing = data.filter(item => item.status === '❌').map(item => item.title)
-  if (missing.length) return 'Equipment ยังไม่ได้กรอก: ' + missing.join(', ')
-  return ''
-}
-
-// คลิกช่อง
+// ✅ คลิกแล้วไปหน้า EquipmentInspectorList โดยตรง
 function handleCellClick(key, type = 'day') {
   if (!key) return
+  let query = { period: '', year: currentYear.value }
 
-  // หา key ที่ตรงกับ calendarData
-  let matchedKey
-  if (type === 'day') matchedKey = Object.keys(calendarData.value).find(k => k.startsWith(key))
-  else matchedKey = Object.keys(calendarData.value).find(k => k === key || k === key + '✅')
-  if (!matchedKey) return
-
-  const data = calendarData.value[matchedKey]
-  if (!data || !data.length) return
-
-  // ตรวจสอบ ✅ ทั้งหมด
-  const isAllGreen = data.every(item => item.status === '✅') || matchedKey.endsWith('✅')
-
-  if (isAllGreen) {
-    // ส่งไปหน้า EquipmentInspectorList
-    let query = { period: '', year: currentYear.value }
-    if (type === 'day') {
-      const [y, m, d] = key.split('-')
-      query.period = 'วัน'; query.day = d; query.month = m; query.year = y
-    } else if (type === 'month') {
-      const [y, m] = key.split('-')
-      query.period = 'เดือน'; query.month = m; query.year = y
-    } else if (type === 'quarter') {
-      const [y, q] = key.split('-')
-      query.period = 'ไตรมาส'; query.quarter = q; query.year = y
-    } else if (type === 'year') {
-      query.period = 'ปี'; query.year = key
-    }
-    router.push({ name: 'EquipmentInspectorList', query })
-  } else {
-    // ถ้ายังมี ❌ → แสดง popup
-    popupItems.value = data
-    showPopup.value = true
+  if (type === 'day') {
+    const [y, m, d] = key.split('-')
+    query.period = 'วัน'; query.day = d; query.month = m; query.year = y
+  } else if (type === 'month') {
+    const [y, m] = key.split('-')
+    query.period = 'เดือน'; query.month = m; query.year = y
+  } else if (type === 'quarter') {
+    const [y, q] = key.split('-')
+    query.period = 'ไตรมาส'; query.quarter = q; query.year = y
+  } else if (type === 'year') {
+    query.period = 'ปี'; query.year = key
   }
-}
 
+  router.push({ name: 'EquipmentInspectorList', query })
+}
 
 watch([selectedPeriod, currentMonth, currentYear], fetchCalendar, { immediate: true })
 </script>

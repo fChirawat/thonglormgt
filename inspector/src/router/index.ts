@@ -7,6 +7,7 @@ import InspectionDay from "../views/InspectionDay.vue";
 import history from "../views/history.vue";
 import EquipmentInspectorList from "../views/EquipmentInspectorList.vue";
 import editinspection from "../views/editinspection.vue";
+import inspectionbacktest from "../views/inspectionbacktest.vue";
 
 
 const routes: RouteRecordRaw[] = [
@@ -42,10 +43,15 @@ const routes: RouteRecordRaw[] = [
         name: "EquipmentInspectorList",
         component: EquipmentInspectorList,
       },
-            {
+      {
         path: "editinspection",
         name: "editinspection",
         component: editinspection,
+      },
+      {
+        path: "inspectionbacktest",
+        name: "inspectionbacktest",
+        component: inspectionbacktest,
       },
 
     ]

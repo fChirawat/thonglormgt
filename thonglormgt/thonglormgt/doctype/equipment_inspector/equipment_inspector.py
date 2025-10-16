@@ -451,57 +451,198 @@ def check_period(period=None, year=None, month=None):
 
 
 
-# เช็ต equipment ที่กรอกได้ตาม period
+# # เช็ต equipment ที่กรอกได้ตาม period
+# @frappe.whitelist(allow_guest=True)
+# def get_equipment_inspector_details(period=None, year=None, month=None, day=None, equipment=None):
+#     try:
+#         if not period:
+#             frappe.throw("Period ต้องระบุ")
+
+#         year = int(year) if year else None
+#         month = int(month) if month else None
+#         day = int(day) if day else None
+
+#         period_field_map = {
+#             "วัน": "period_day",
+#             "เดือน": "period_month",
+#             "ไตรมาส": "period_quarter",
+#             "ปี": "period_year"
+#         }
+#         period_field = period_field_map.get(period)
+#         if not period_field:
+#             frappe.throw(f"Period {period} ไม่ถูกต้อง")
+
+#         if period == "วัน":
+#             if not (year and month and day):
+#                 frappe.throw("สำหรับ period 'วัน' ต้องระบุ year, month, day")
+#             start_dt = datetime(year, month, day, 0, 0, 0)
+#             end_dt = datetime(year, month, day, 23, 59, 59)
+#         elif period == "เดือน":
+#             if not (year and month):
+#                 frappe.throw("สำหรับ period 'เดือน' ต้องระบุ year, month")
+#             start_dt = datetime(year, month, 1, 0, 0, 0)
+#             end_dt = datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
+#         elif period == "ไตรมาส":
+#             if not (year and month):
+#                 frappe.throw("สำหรับ period 'ไตรมาส' ต้องระบุ year, month")
+#             start_month = (month - 1) // 3 * 3 + 1
+#             end_month = start_month + 2
+#             start_dt = datetime(year, start_month, 1, 0, 0, 0)
+#             end_dt = datetime(year, end_month, monthrange(year, end_month)[1], 23, 59, 59)
+#         elif period == "ปี":
+#             if not year:
+#                 frappe.throw("สำหรับ period 'ปี' ต้องระบุ year")
+#             start_dt = datetime(year, 1, 1, 0, 0, 0)
+#             end_dt = datetime(year, 12, 31, 23, 59, 59)
+
+#         filters = {"date": ["between", [start_dt, end_dt]]}
+#         if equipment:
+#             filters["equipment"] = equipment
+
+#         inspectors = frappe.get_all(
+#             "Equipment Inspector",
+#             filters=filters,
+#             fields=["name", "equipment", "date", "period"],
+#             order_by="date asc"
+#         )
+
+#         result = []
+#         used_equipment = set()
+
+#         for ins in inspectors:
+#             doc = frappe.get_doc("Equipment Inspector", ins.name)
+#             rec_date = doc.date
+#             if not rec_date:
+#                 continue
+
+#             indicators = frappe.get_all(
+#                 "Equipment Inspector Indicator",
+#                 filters={"parent": ins.name, "parenttype": "Equipment Inspector"},
+#                 fields=["title", "type", "value", "standard_grading", 
+#                         "standard_value_start", "standard_value_end"]
+#             )
+
+#             for ind in indicators:
+#                 ind["period"] = ins.period
+
+#             equipment_title = frappe.get_value("Equipment", ins.equipment, "title") or ins.equipment
+
+#             result.append({
+#                 "equipment": equipment_title,
+#                 "code": ins.equipment,
+#                 "date": str(rec_date),
+#                 "period": ins.period,
+#                 "indicators": indicators
+#             })
+
+#             used_equipment.add(ins.equipment)
+
+#         # remaining_equipment เฉพาะ period
+#         all_equipment = [e.name for e in frappe.get_all("Equipment", fields=["name"])]
+#         remaining_equipment_codes = [eq for eq in all_equipment if eq not in used_equipment]
+
+#         equipment_list = []
+#         for eq in remaining_equipment_codes:
+#             indicators = frappe.get_all(
+#                 "Equipment Indicator",
+#                 filters={"equipment": eq, period_field: 1},
+#                 fields=["title", "type", "standard_value_start", "standard_value_end"]
+#             )
+
+#             if not indicators:
+#                 continue  # ถ้าไม่มี indicator สำหรับ period → ข้าม
+
+#             title = frappe.get_value("Equipment", eq, "title") or eq
+#             for ind in indicators:
+#                 ind["period"] = period
+
+#             equipment_list.append({
+#                 "code": eq,
+#                 "title": title,
+#                 "indicators": indicators
+#             })
+
+#         response = {
+#             "status": True,
+#             "message": "success",
+#             "data": result
+#         }
+
+#         if equipment_list:
+#             response["remaining_equipment"] = equipment_list
+
+#         return response
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "get_equipment_inspector_details Error")
+#         return {"status": False, "message": str(e), "data": []}
+    
+# /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 @frappe.whitelist(allow_guest=True)
-def get_equipment_inspector_details(period=None, year=None, month=None, day=None, equipment=None):
+def get_equipment_inspector_details(period=None, year=None, month=None, day=None, quarter=None, equipment=None):
+    """
+    period: "วัน", "เดือน", "ไตรมาส", "ปี"
+    year: ปี เช่น 2025
+    month: เดือน 1-12 สำหรับ period เดือน หรือไตรมาส
+    day: วัน 1-31 สำหรับ period วัน
+    quarter: ไตรมาส 1-4 สำหรับ period ไตรมาส
+    equipment: กรองเฉพาะรหัสอุปกรณ์ (optional)
+    """
+    import frappe
+    from datetime import datetime
+    from calendar import monthrange
 
     try:
         if not period:
             frappe.throw("Period ต้องระบุ")
 
-        # แปลงค่า input เป็น int
         year = int(year) if year else None
         month = int(month) if month else None
         day = int(day) if day else None
+        quarter = int(quarter) if quarter else None
 
-        filters = {"period": period}
+        # map period → field ใน Equipment Indicator
+        period_field_map = {
+            "วัน": "period_day",
+            "เดือน": "period_month",
+            "ไตรมาส": "period_quarter",
+            "ปี": "period_year"
+        }
+        period_field = period_field_map.get(period)
+        if not period_field:
+            frappe.throw(f"Period {period} ไม่ถูกต้อง")
 
-        # กรองตาม period และวันที่
+        # กำหนดช่วงเวลา
         if period == "วัน":
             if not (year and month and day):
                 frappe.throw("สำหรับ period 'วัน' ต้องระบุ year, month, day")
             start_dt = datetime(year, month, day, 0, 0, 0)
             end_dt = datetime(year, month, day, 23, 59, 59)
-            filters["date"] = ["between", [start_dt, end_dt]]
-
         elif period == "เดือน":
             if not (year and month):
                 frappe.throw("สำหรับ period 'เดือน' ต้องระบุ year, month")
             start_dt = datetime(year, month, 1, 0, 0, 0)
             end_dt = datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
-            filters["date"] = ["between", [start_dt, end_dt]]
-
         elif period == "ไตรมาส":
-            if not (year and month):
-                frappe.throw("สำหรับ period 'ไตรมาส' ต้องระบุ year, month (เดือนเริ่มไตรมาส)")
-            start_month = (month - 1) // 3 * 3 + 1
+            if not (year and quarter):
+                frappe.throw("สำหรับ period 'ไตรมาส' ต้องระบุ year และ quarter")
+            start_month = (quarter - 1) * 3 + 1
             end_month = start_month + 2
             start_dt = datetime(year, start_month, 1, 0, 0, 0)
             end_dt = datetime(year, end_month, monthrange(year, end_month)[1], 23, 59, 59)
-            filters["date"] = ["between", [start_dt, end_dt]]
-
         elif period == "ปี":
             if not year:
                 frappe.throw("สำหรับ period 'ปี' ต้องระบุ year")
             start_dt = datetime(year, 1, 1, 0, 0, 0)
             end_dt = datetime(year, 12, 31, 23, 59, 59)
-            filters["date"] = ["between", [start_dt, end_dt]]
 
-        # กรองตาม equipment ถ้ามี
+        # filters สำหรับ Equipment Inspector
+        filters = {"date": ["between", [start_dt, end_dt]], "period": period}
         if equipment:
             filters["equipment"] = equipment
 
-        # ดึง Equipment Inspector
+        # ดึง Equipment Inspector ที่มีการกรอกแล้ว
         inspectors = frappe.get_all(
             "Equipment Inspector",
             filters=filters,
@@ -514,23 +655,26 @@ def get_equipment_inspector_details(period=None, year=None, month=None, day=None
 
         for ins in inspectors:
             doc = frappe.get_doc("Equipment Inspector", ins.name)
-            rec_date = getdate(doc.date) if doc.date else None
+            rec_date = doc.date
             if not rec_date:
-                continue  # ข้าม record ที่ date เป็น None
+                continue
 
             indicators = frappe.get_all(
                 "Equipment Inspector Indicator",
                 filters={"parent": ins.name, "parenttype": "Equipment Inspector"},
-                fields=["title", "type", "value", "standard_grading", 
+                fields=["title", "type", "value", "standard_grading",
                         "standard_value_start", "standard_value_end"]
             )
 
-            # ✅ ดึง title ของ equipment
+            # เพิ่ม period ให้ indicators
+            for ind in indicators:
+                ind["period"] = ins.period
+
             equipment_title = frappe.get_value("Equipment", ins.equipment, "title") or ins.equipment
 
             result.append({
-                "equipment": equipment_title,   # ใช้ title แทน
-                "code": ins.equipment,          # เก็บ code ไว้ด้วย
+                "equipment": equipment_title,
+                "code": ins.equipment,
                 "date": str(rec_date),
                 "period": ins.period,
                 "indicators": indicators
@@ -538,26 +682,338 @@ def get_equipment_inspector_details(period=None, year=None, month=None, day=None
 
             used_equipment.add(ins.equipment)
 
-        # หา remaining_equipment
+        # ดึง remaining equipment สำหรับ period นั้น ๆ
         all_equipment = [e.name for e in frappe.get_all("Equipment", fields=["name"])]
-        remaining_equipment = [eq for eq in all_equipment if eq not in used_equipment]
+        remaining_equipment_codes = [eq for eq in all_equipment if eq not in used_equipment]
 
         equipment_list = []
-        for eq in remaining_equipment:
-            title = frappe.get_value("Equipment", eq, "title")
-            if title:
-                equipment_list.append({"code": eq, "title": title})
+        for eq in remaining_equipment_codes:
+            indicators = frappe.get_all(
+                "Equipment Indicator",
+                filters={
+                    "equipment": eq,
+                    period_field: 1  # ดึงเฉพาะ indicators ของ period นี้
+                },
+                fields=["title", "type", "standard_value_start", "standard_value_end"]
+            )
 
-        if not equipment_list:
-            equipment_list = [{"code": "", "title": "ทุกข้อมูลกรอกหมดแล้ว"}]
+            if not indicators:
+                continue  # ถ้าไม่มี indicator สำหรับ period → ข้าม
 
-        return {
+            title = frappe.get_value("Equipment", eq, "title") or eq
+            for ind in indicators:
+                ind["period"] = period
+
+            equipment_list.append({
+                "code": eq,
+                "title": title,
+                "indicators": indicators
+            })
+
+        response = {
             "status": True,
             "message": "success",
-            "data": result,
-            "remaining_equipment": equipment_list
+            "data": result
         }
+
+        if equipment_list:
+            response["remaining_equipment"] = equipment_list
+
+        return response
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_equipment_inspector_details Error")
-        return {"status": False, "message": str(e), "data": [], "remaining_equipment": []}
+        return {"status": False, "message": str(e), "data": []}
+
+
+
+    
+    
+    
+# ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+# @frappe.whitelist(allow_guest=True)
+# def get_equipment_by_period_2(period=None, day=None, month=None, year=None, quarter=None):
+#     """
+#     ดึงรายการอุปกรณ์สำหรับช่วงเวลาที่ระบุ
+#     period: วัน / เดือน / ไตรมาส / ปี
+#     day, month, year, quarter: ใช้ระบุช่วงเวลา
+#     """
+#     from datetime import date, datetime
+#     import calendar
+
+#     if not period:
+#         return []
+
+#     # กำหนดช่วงเวลา (first_day, last_day) ตาม period
+#     if period == "วัน":
+#         if not (day and month and year):
+#             return []
+#         first_day = datetime(year=int(year), month=int(month), day=int(day))
+#         last_day = datetime(year=int(year), month=int(month), day=int(day), hour=23, minute=59, second=59)
+
+#     elif period == "เดือน":
+#         if not (month and year):
+#             return []
+#         first_day = date(int(year), int(month), 1)
+#         last_day = date(int(year), int(month), calendar.monthrange(int(year), int(month))[1])
+
+#     elif period == "ไตรมาส":
+#         if not (quarter and year):
+#             return []
+#         first_month = 3*(int(quarter)-1) + 1
+#         last_month = first_month + 2
+#         first_day = date(int(year), first_month, 1)
+#         last_day = date(int(year), last_month, calendar.monthrange(int(year), last_month)[1])
+
+#     elif period == "ปี":
+#         if not year:
+#             return []
+#         first_day = date(int(year), 1, 1)
+#         last_day = date(int(year), 12, 31)
+#     else:
+#         return []
+
+#     # ดึงอุปกรณ์ที่กรอกแล้วใน Equipment Inspector
+#     filters = [["period", "=", period]]
+#     if period == "วัน":
+#         filters += [["date", ">=", first_day], ["date", "<=", last_day]]
+#     else:
+#         filters += [["date", ">=", first_day], ["date", "<=", last_day]]
+
+#     existing = frappe.get_all(
+#         "Equipment Inspector",
+#         fields=["equipment"],
+#         filters=filters,
+#         distinct=True
+#     )
+#     existing_equipment = [d["equipment"] for d in existing]
+
+#     # ดึงอุปกรณ์จาก Equipment Indicator ตาม period
+#     period_field = {
+#         "วัน": "period_day",
+#         "เดือน": "period_month",
+#         "ไตรมาส": "period_quarter",
+#         "ปี": "period_year"
+#     }.get(period)
+
+#     if not period_field:
+#         return []
+
+#     indicators = frappe.get_all(
+#         "Equipment Indicator",
+#         filters={period_field: 1},
+#         fields=["equipment"],
+#         distinct=True
+#     )
+#     equipment_codes = [d["equipment"] for d in indicators]
+
+#     # ตัดอุปกรณ์ที่กรอกแล้ว
+#     remaining_equipment = list(set(equipment_codes) - set(existing_equipment))
+
+#     # แปลงเป็น list ของ dict {code, title}
+#     equipment_list = []
+#     for eq in remaining_equipment:
+#         title = frappe.get_value("Equipment", eq, "title")
+#         if title:
+#             equipment_list.append({"code": eq, "title": title})
+
+#     if not equipment_list:
+#         equipment_list = [{"code": "", "title": "ทุกข้อมูลกรอกหมดแล้ว"}]
+
+#     return equipment_list
+
+
+
+
+#  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+# @frappe.whitelist(allow_guest=True)
+# def get_equipment_by_period_2(period=None, date=None):
+#     """
+#     period: "วัน", "เดือน", "ไตรมาส", "ปี"
+#     date: "YYYY-MM-DD" หรือวันที่ที่ต้องการดู
+#     """
+#     import frappe
+#     from datetime import datetime, date as dt_date
+#     import calendar
+
+#     if not period or not date:
+#         return {"message": []}
+
+#     try:
+#         target_date = datetime.strptime(date, "%Y-%m-%d").date()
+#     except:
+#         return {"message": []}
+
+#     # --- กำหนดช่วงเวลา filter ตาม period ---
+#     if period == "วัน":
+#         first_day = datetime.combine(target_date, datetime.min.time())
+#         last_day = datetime.combine(target_date, datetime.max.time())
+#         filters = [["period", "=", "วัน"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+#     elif period == "เดือน":
+#         first_day = target_date.replace(day=1)
+#         last_day = target_date.replace(day=calendar.monthrange(target_date.year, target_date.month)[1])
+#         filters = [["period", "=", "เดือน"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+#     elif period == "ไตรมาส":
+#         q = (target_date.month - 1) // 3 + 1
+#         first_month = 3 * (q - 1) + 1
+#         last_month = first_month + 2
+#         first_day = dt_date(target_date.year, first_month, 1)
+#         last_day = dt_date(target_date.year, last_month, calendar.monthrange(target_date.year, last_month)[1])
+#         filters = [["period", "=", "ไตรมาส"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+#     elif period == "ปี":
+#         first_day = dt_date(target_date.year, 1, 1)
+#         last_day = dt_date(target_date.year, 12, 31)
+#         filters = [["period", "=", "ปี"], ["date", ">=", first_day], ["date", "<=", last_day]]
+#     else:
+#         return {"message": []}
+
+#     # --- Equipment ที่กรอกแล้วใน Equipment Inspector ---
+#     existing = frappe.get_all(
+#         "Equipment Inspector",
+#         fields=["equipment"],
+#         filters=filters,
+#         distinct=True
+#     )
+#     existing_equipment = [d["equipment"] for d in existing]
+
+#     # --- Equipment จาก Equipment Indicator ตาม period ---
+#     period_field = {
+#         "วัน": "period_day",
+#         "เดือน": "period_month",
+#         "ไตรมาส": "period_quarter",
+#         "ปี": "period_year"
+#     }.get(period)
+
+#     if not period_field:
+#         return {"message": []}
+
+#     indicators = frappe.get_all(
+#         "Equipment Indicator",
+#         filters={period_field: 1},
+#         fields=["equipment"],
+#         distinct=True
+#     )
+#     equipment_codes = [d["equipment"] for d in indicators]
+
+#     # --- ตัดอุปกรณ์ที่กรอกแล้ว ---
+#     remaining_equipment = list(set(equipment_codes) - set(existing_equipment))
+
+#     # --- แปลงเป็น code + title ---
+#     equipment_list = []
+#     for eq in remaining_equipment:
+#         title = frappe.get_value("Equipment", eq, "title")
+#         if title:
+#             equipment_list.append({"code": eq, "title": title})
+
+#     if not equipment_list:
+#         equipment_list = [{"code": "", "title": "ทุกข้อมูลกรอกหมดแล้ว"}]
+
+#     return {"message": equipment_list}
+
+
+
+# ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+@frappe.whitelist(allow_guest=True)
+def get_equipment_by_period_2(period=None, date=None, year=None, quarter=None):
+    """
+    period: "วัน", "เดือน", "ไตรมาส", "ปี"
+    date: "YYYY-MM-DD" สำหรับวันหรือเดือน (optional)
+    year: สำหรับ period=ปี หรือ ไตรมาส (optional)
+    quarter: สำหรับ period=ไตรมาส (1-4) (optional)
+    """
+    import frappe
+    from datetime import datetime, date as dt_date
+    import calendar
+
+    # --- ถ้า date ไม่มี ให้สร้างจาก year/quarter สำหรับ period ปี หรือ ไตรมาส ---
+    if not date:
+        if period == "ปี" and year:
+            date = f"{year}-01-01"
+        elif period == "ไตรมาส" and year and quarter:
+            month = (int(quarter)-1)*3 + 1
+            date = f"{year}-{month:02d}-01"
+
+    if not period or not date:
+        return {"message": []}
+
+    # --- แปลงเป็น target_date ---
+    try:
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except:
+        return {"message": []}
+
+    # --- กำหนดช่วงเวลา filter ตาม period ---
+    if period == "วัน":
+        first_day = datetime.combine(target_date, datetime.min.time())
+        last_day = datetime.combine(target_date, datetime.max.time())
+        filters = [["period", "=", "วัน"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+    elif period == "เดือน":
+        first_day = target_date.replace(day=1)
+        last_day = target_date.replace(day=calendar.monthrange(target_date.year, target_date.month)[1])
+        filters = [["period", "=", "เดือน"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+    elif period == "ไตรมาส":
+        first_month = target_date.month
+        last_month = first_month + 2
+        first_day = dt_date(target_date.year, first_month, 1)
+        last_day = dt_date(target_date.year, last_month, calendar.monthrange(target_date.year, last_month)[1])
+        filters = [["period", "=", "ไตรมาส"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+    elif period == "ปี":
+        first_day = dt_date(target_date.year, 1, 1)
+        last_day = dt_date(target_date.year, 12, 31)
+        filters = [["period", "=", "ปี"], ["date", ">=", first_day], ["date", "<=", last_day]]
+
+    else:
+        return {"message": []}
+
+    # --- Equipment ที่กรอกแล้วใน Equipment Inspector ---
+    existing = frappe.get_all(
+        "Equipment Inspector",
+        fields=["equipment"],
+        filters=filters,
+        distinct=True
+    )
+    existing_equipment = [d["equipment"] for d in existing]
+
+    # --- Equipment จาก Equipment Indicator ตาม period ---
+    period_field = {
+        "วัน": "period_day",
+        "เดือน": "period_month",
+        "ไตรมาส": "period_quarter",
+        "ปี": "period_year"
+    }.get(period)
+
+    if not period_field:
+        return {"message": []}
+
+    indicators = frappe.get_all(
+        "Equipment Indicator",
+        filters={period_field: 1},
+        fields=["equipment"],
+        distinct=True
+    )
+    equipment_codes = [d["equipment"] for d in indicators]
+
+    # --- ตัดอุปกรณ์ที่กรอกแล้ว ---
+    remaining_equipment = list(set(equipment_codes) - set(existing_equipment))
+
+    # --- แปลงเป็น code + title ---
+    equipment_list = []
+    for eq in remaining_equipment:
+        title = frappe.get_value("Equipment", eq, "title")
+        if title:
+            equipment_list.append({"code": eq, "title": title})
+
+    if not equipment_list:
+        equipment_list = [{"code": "", "title": "ทุกข้อมูลกรอกหมดแล้ว"}]
+
+    return {"message": equipment_list}
