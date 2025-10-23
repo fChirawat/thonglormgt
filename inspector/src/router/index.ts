@@ -3,8 +3,13 @@ import About from "../views/About.vue";
 import authRoutes from './auth';
 import Layout from "../views/Layout.vue";
 import Index from "../views/Index.vue";
+import InspectionDay from "../views/InspectionDay.vue";
+import history from "../views/history.vue";
+import EquipmentInspectorList from "../views/EquipmentInspectorList.vue";
+import editinspection from "../views/editinspection.vue";
+import inspectionbacktest from "../views/inspectionbacktest.vue";
 
-33
+
 const routes: RouteRecordRaw[] = [
   ...authRoutes,
   {
@@ -22,8 +27,33 @@ const routes: RouteRecordRaw[] = [
         name: "About",
         component: About,
       },
-      
-      
+
+      {
+        path: "InspectionDay",
+        name: "InspectionDay",
+        component: InspectionDay,
+      },
+      {
+        path: "history",
+        name: "history",
+        component: history,
+      },
+      {
+        path: "EquipmentInspectorList",
+        name: "EquipmentInspectorList",
+        component: EquipmentInspectorList,
+      },
+      {
+        path: "editinspection",
+        name: "editinspection",
+        component: editinspection,
+      },
+      {
+        path: "inspectionbacktest",
+        name: "inspectionbacktest",
+        component: inspectionbacktest,
+      },
+
     ]
   },
 

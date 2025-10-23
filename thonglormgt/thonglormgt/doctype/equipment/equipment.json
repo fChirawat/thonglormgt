@@ -1,38 +1,41 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "autoincrement",
- "creation": "2025-08-16 14:31:37.633495",
+ "autoname": "field:code",
+ "creation": "2025-09-29 13:17:48.050843",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "username",
-  "password"
+  "code",
+  "title",
+  "description"
  ],
  "fields": [
   {
-   "fieldname": "username",
+   "fieldname": "code",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "username"
+   "label": "Code",
+   "unique": 1
   },
   {
-   "fieldname": "password",
-   "fieldtype": "Password",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "password"
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-17 12:19:46.245963",
+ "modified": "2025-09-29 13:18:15.705914",
  "modified_by": "Administrator",
  "module": "Thonglormgt",
- "name": "username",
- "naming_rule": "Autoincrement",
+ "name": "Equipment",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,9 +52,8 @@
   }
  ],
  "row_format": "Dynamic",
- "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "username"
+ "title_field": "title"
 }

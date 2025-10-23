@@ -3,7 +3,6 @@
     <div class="login-box">
       <h2>ตรวจสอบอุปกรณ์อาคาร</h2>
 
-    
       <input
         v-model="username"
         type="text"
@@ -11,8 +10,6 @@
         class="input-field"
       />
 
-
-     
       <input
         v-model="password"
         type="password"
@@ -20,7 +17,6 @@
         class="input-field"
       />
 
-    
       <button @click="handleLogin" class="login-button">
         ล็อกอิน
       </button>
@@ -32,16 +28,41 @@
 import { ref } from "vue";
 
 const username = ref("");
-const userType = ref("");
 const password = ref("");
 
-const handleLogin = () => {
-  if (!username.value || !userType.value || !password.value) {
+const handleLogin = async () => {
+  if (!username.value || !password.value) {
     alert("กรุณากรอกข้อมูลให้ครบ");
     return;
   }
-  alert(`ล็อกอิน: ${username.value} (${userType.value})`);
-  
+
+  try {
+    // เรียก API ของ Frappe สำหรับ login
+    const response = await fetch("/api/method/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        usr: username.value,
+        pwd: password.value,
+      }),
+      credentials: "include", // เก็บ cookie session
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.message === "Logged In") {
+      alert("เข้าสู่ระบบสำเร็จ!");
+      // Redirect ไปหน้าหลักหรือหน้า dashboard
+      window.location.href = "/";
+    } else {
+      alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+  }
 };
 </script>
 
@@ -51,13 +72,12 @@ body {
   font-family: Arial, sans-serif;
 }
 
-
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; 
-  background-color: #f8fafc; 
+  height: 100vh;
+  background-color: #f8fafc;
 }
 
 .login-box {
@@ -78,7 +98,6 @@ body {
   margin-bottom: 25px;
 }
 
-
 .input-field {
   padding: 12px;
   margin-bottom: 15px;
@@ -92,7 +111,6 @@ body {
   outline: none;
   box-shadow: 0 0 0 2px #4da6ff;
 }
-
 
 .login-button {
   padding: 12px;

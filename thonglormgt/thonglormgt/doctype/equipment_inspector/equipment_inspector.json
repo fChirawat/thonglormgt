@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-29 13:30:38.795647",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "equipment",
+  "date",
+  "period",
+  "load_indicator",
+  "equipment_inspector_indicator",
+  "open_form"
+ ],
+ "fields": [
+  {
+   "fieldname": "equipment",
+   "fieldtype": "Link",
+   "label": "Equipment",
+   "options": "Equipment"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "period",
+   "fieldtype": "Select",
+   "label": "Period",
+   "options": "\u0e27\u0e31\u0e19\n\u0e40\u0e14\u0e37\u0e2d\u0e19\n\u0e44\u0e15\u0e23\u0e21\u0e32\u0e2a\n\u0e1b\u0e35"
+  },
+  {
+   "fieldname": "equipment_inspector_indicator",
+   "fieldtype": "Table",
+   "label": "Equipment Inspector Indicator",
+   "options": "Equipment Inspector Indicator"
+  },
+  {
+   "fieldname": "load_indicator",
+   "fieldtype": "Button",
+   "label": "Load Indicator"
+  },
+  {
+   "fieldname": "open_form",
+   "fieldtype": "Button",
+   "label": "Open Form"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-16 20:53:20.141535",
+ "modified_by": "Administrator",
+ "module": "Thonglormgt",
+ "name": "Equipment Inspector",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
